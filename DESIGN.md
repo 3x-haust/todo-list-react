@@ -1,14 +1,14 @@
 # 3x-haust-todo-list-react Design System
 
 ## Design References
+- Cursor (AI IDE) from https://github.com/VoltAgent/awesome-design-md: Sleek dark AI editor style with focused sidebars, gradient accents, and task-oriented composition. Traits to reinterpret: dark editor chrome, AI assistant panel, file tree rhythm, gradient accents, focused workbench. Raw reference: https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/cursor/DESIGN.md
 - VoltAgent (AI agent systems) from https://github.com/VoltAgent/awesome-design-md: Void-black agent framework aesthetic with emerald accents, terminal-native surfaces, and explicit workflow topology. Traits to reinterpret: dark command center, agent graph, terminal panels, status telemetry, emerald highlights. Raw reference: https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/voltagent/DESIGN.md
 - Linear (Productivity SaaS) from https://github.com/VoltAgent/awesome-design-md: Ultra-minimal engineering product UI with precise hierarchy, issue streams, and restrained purple accent. Traits to reinterpret: dense lists, precise hierarchy, minimal chrome, command palette feel, status chips. Raw reference: https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/linear.app/DESIGN.md
-- Vercel (Developer platform) from https://github.com/VoltAgent/awesome-design-md: Black-and-white deployment platform precision with strong typography, clear cards, and clean product flow. Traits to reinterpret: monochrome precision, deployment cards, sharp typography, technical trust, clean dashboards. Raw reference: https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/vercel/DESIGN.md
 
 These references are used as design-system inspiration only. Do not copy brand assets, logos, proprietary copy, or exact visual identity. Reinterpret layout density, component rhythm, status language, and interaction patterns for this project.
 
 ## Visual Theme
-Use VoltAgent as the primary product feel and Linear as the secondary restraint. The first screen must show the actual usable product, not a placeholder or generic landing page. The user should immediately see what can be controlled, what state the system is in, and what result will be produced.
+Use Cursor as the primary product feel and VoltAgent as the secondary restraint. The first screen must show the actual usable product, not a placeholder or generic landing page. The user should immediately see what can be controlled, what state the system is in, and what result will be produced.
 
 ## Color Palette
 - Primary ink: #162033 for important text and control labels.

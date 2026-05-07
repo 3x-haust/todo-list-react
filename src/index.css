@@ -1,27 +1,62 @@
 :root {
-  --bg-color: #ffffff;
-  --text-color: #1a1a1a;
-  --border-color: #e0e0e0;
-  --input-bg: #f5f5f5;
-  --button-bg: #5e6ad2;
-  --button-hover: #4a55b8;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --transition: all 0.2s ease;
-}
-
-body {
-  margin: 0;
-  padding: 0;
+  /* Linear dark theme */
+  --bg: #010102;
+  --surface: #0f1011;
+  --surface-hover: rgba(255, 255, 255, 0.03);
+  --text-primary: #f7f8f8;
+  --text-secondary: #919293;
+  --text-tertiary: #5c5c5d;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #5e6ad2;
+  --accent: #5e6ad2;
+  --accent-hover: #828fff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --priority-none: rgba(255, 255, 255, 0.06);
+  --priority-none-text: #919293;
+  --priority-low: rgba(88, 166, 255, 0.12);
+  --priority-low-text: #58a6ff;
+  --priority-medium: rgba(210, 153, 34, 0.12);
+  --priority-medium-text: #d29922;
+  --priority-high: rgba(248, 81, 73, 0.12);
+  --priority-high-text: #f85149;
+  --completed-text: #919293;
+  --danger: #f85149;
+  --danger-hover: #da3636;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color: #1a1a1a;
-    --text-color: #f0f0f0;
-    --border-color: #333;
-    --input-bg: #2a2a2a;
-    --button-bg: #6c7ae0;
-    --button-hover: #5a68c8;
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --bg: #010102;
+    --surface: #0f1011;
+    --text-primary: #f7f8f8;
+    --text-secondary: #919293;
+    --border: rgba(255, 255, 255, 0.08);
+    --accent: #5e6ad2;
+    --accent-hover: #828fff;
   }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
 }
