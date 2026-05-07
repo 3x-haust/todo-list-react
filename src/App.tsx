@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent, useRef } from "react";
+import "./App.css";
 import { ThemeProvider, useTheme } from "./ThemeContext";
 import { Todo, Filter, Priority } from "./types";
 import { loadTodos, saveTodos } from "./storage";
