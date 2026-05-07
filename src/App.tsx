@@ -47,6 +47,7 @@ const TodoItem: React.FC<{
       className={`todo-item ${todo.completed ? "completed" : ""} ${
         isDeleting ? "deleting" : ""
       }`}
+      onClick={() => onToggle(todo.id)}
     >
       <div className="todo-checkbox" onClick={() => onToggle(todo.id)}>
         <svg
@@ -83,7 +84,7 @@ const TodoItem: React.FC<{
         </div>
       </div>
 
-      <button className="delete-btn" onClick={handleDelete}>
+      <button className="delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(); }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" />
         </svg>
