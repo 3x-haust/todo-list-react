@@ -11,13 +11,14 @@ const isTodo = (value: unknown): value is Todo => {
 
   return (
     typeof candidate.id === "string" &&
-    typeof candidate.title === "string" &&
+    typeof candidate.text === "string" &&
     typeof candidate.completed === "boolean" &&
-    (candidate.priority === "low" ||
+    (candidate.priority === undefined ||
+      candidate.priority === "low" ||
       candidate.priority === "medium" ||
       candidate.priority === "high") &&
-    typeof candidate.dueDate === "string" &&
-    typeof candidate.createdAt === "string"
+    (candidate.dueDate === undefined || typeof candidate.dueDate === "string") &&
+    (candidate.createdAt === undefined || typeof candidate.createdAt === "string")
   );
 };
 
