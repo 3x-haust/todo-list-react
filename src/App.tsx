@@ -1,271 +1,188 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import "./App.css";
+import React, { useState, useEffect, FormEvent } from "react";
+import { ThemeProvider, useTheme } from "./ThemeContext";
+import { Todo, Filter } from "./types";
 import { loadTodos, saveTodos } from "./storage";
-import type { Filter, Priority, Todo } from "./types";
+import "./App.css";
 
-const priorityLabels: Record<Priority, string> = {
-  high: "높음",
-  medium: "보통",
-  low: "낮음",
-};
+const TodoItem: React.FC<{
+  todo: Todo;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+}> = ({ todo, onToggle, onDelete }) => (
+  <li className={`todo-item ${todo.completed ? "completed" : ""}`}>
+    <input
+      type="checkbox"
+      checked={todo.completed}
+      onChange={() => onToggle(todo.id)}
+    />
+    <span className="todo-text">{todo.text}</span>
+    <button onClick={() => onDelete(todo.id)} className="delete-btn">
+      ✕
+    </button>
+  </li>
+);
 
-const filterLabels: Record<Filter, string> = {
-  all: "전체",
-  active: "진행 중",
-  completed: "완료",
-};
-
-const priorityOrder: Record<Priority, number> = {
-  high: 0,
-  medium: 1,
-  low: 2,
-};
-
-const createTaskId = () => {
-  if (window.crypto?.randomUUID) {
-    return window.crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-};
-
-function App() {
-  const [todos, setTodos] = useState<Todo[]>(() => loadTodos());
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState<Priority>("medium");
-  const [dueDate, setDueDate] = useState("");
+const AppContent: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [inputValue, setInputValue] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    saveTodos(todos);
-  }, [todos]);
-
-  const stats = useMemo(() => {
-    const completed = todos.filter((todo) => todo.completed).length;
-    const active = todos.length - completed;
-    const progress = todos.length === 0 ? 0 : Math.round((completed / todos.length) * 100);
-
-    return { active, completed, progress, total: todos.length };
-  }, [todos]);
-
-  const visibleTodos = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    return todos
-      .filter((todo) => {
-        if (filter === "active") {
-          return !todo.completed;
-        }
-
-        if (filter === "completed") {
-          return todo.completed;
-        }
-
-        return true;
-      })
-      .filter((todo) => todo.title.toLowerCase().includes(normalizedSearch))
-      .sort((left, right) => {
-        if (left.completed !== right.completed) {
-          return left.completed ? 1 : -1;
-        }
-
-        return priorityOrder[left.priority] - priorityOrder[right.priority];
-      });
-  }, [filter, searchTerm, todos]);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const nextTitle = title.trim();
-    if (!nextTitle) {
-      return;
+    try {
+      const stored = loadTodos();
+      if (stored) {
+        setTodos(stored);
+      }
+    } catch (err) {
+      setError("할 일 목록을 불러오는데 실패했습니다.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    const nextTodo: Todo = {
-      id: createTaskId(),
-      title: nextTitle,
+  useEffect(() => {
+    try {
+      saveTodos(todos);
+    } catch (err) {
+      setError("할 일 목록을 저장하는데 실패했습니다.");
+      console.error(err);
+    }
+  }, [todos]);
+
+  const addTodo = (e: FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    const newTodo: Todo = {
+      id: crypto.randomUUID(),
+      text: inputValue.trim(),
       completed: false,
-      priority,
-      dueDate,
-      createdAt: new Date().toISOString(),
     };
-
-    setTodos((currentTodos) => [nextTodo, ...currentTodos]);
-    setTitle("");
-    setPriority("medium");
-    setDueDate("");
+    setTodos((prev) => [...prev, newTodo]);
+    setInputValue("");
   };
 
   const toggleTodo = (id: string) => {
-    setTodos((currentTodos) =>
-      currentTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
-      ),
+    setTodos((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
     );
   };
 
   const deleteTodo = (id: string) => {
-    setTodos((currentTodos) => currentTodos.filter((todo) => todo.id !== id));
+    setTodos((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const clearCompleted = () => {
-    setTodos((currentTodos) => currentTodos.filter((todo) => !todo.completed));
-  };
+  const filteredTodos = todos.filter((todo) => {
+    if (filter === "active") return !todo.completed;
+    if (filter === "completed") return todo.completed;
+    return true;
+  });
 
-  const completeAll = () => {
-    setTodos((currentTodos) => currentTodos.map((todo) => ({ ...todo, completed: true })));
-  };
-
-  const today = new Date().toISOString().slice(0, 10);
+  const completedCount = todos.filter((t) => t.completed).length;
+  const totalCount = todos.length;
 
   return (
-    <main className="app-shell">
-      <section className="hero-panel" aria-labelledby="app-title">
-        <div className="hero-copy">
-          <p className="eyebrow">Personal task board</p>
-          <h1 id="app-title">할 일을 우선순위로 정리하세요.</h1>
-          <p className="hero-description">
-            검색, 필터, 마감일, 우선순위, 진행률을 지원하는 TypeScript 투두 앱입니다.
-          </p>
-        </div>
+    <div className={`app-container ${theme}`}>
+      <header className="app-header">
+        <h1>Todo List</h1>
+        <button
+          onClick={toggleTheme}
+          className="theme-toggle-btn"
+          aria-label="테마 전환"
+        >
+          {theme === "dark" ? "☀️ 라이트" : "🌙 다크"}
+        </button>
+      </header>
 
-        <div className="progress-card" aria-label="진행률">
-          <span>{stats.progress}%</span>
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${stats.progress}%` }} />
+      <main className="app-main">
+        {error && (
+          <div className="error-banner">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="close-error-btn">
+              ✕
+            </button>
           </div>
-          <p>
-            완료 {stats.completed}개 / 전체 {stats.total}개
-          </p>
-        </div>
-      </section>
+        )}
 
-      <section className="task-board" aria-label="할 일 관리">
-        <form className="task-form" onSubmit={handleSubmit}>
-          <label className="field wide-field">
-            <span>새 작업</span>
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="예: 포트폴리오 README 정리"
-            />
-          </label>
-
-          <label className="field">
-            <span>우선순위</span>
-            <select value={priority} onChange={(event) => setPriority(event.target.value as Priority)}>
-              <option value="high">높음</option>
-              <option value="medium">보통</option>
-              <option value="low">낮음</option>
-            </select>
-          </label>
-
-          <label className="field">
-            <span>마감일</span>
-            <input value={dueDate} onChange={(event) => setDueDate(event.target.value)} type="date" />
-          </label>
-
-          <button className="primary-button" type="submit">
-            추가
-          </button>
-        </form>
-
-        <div className="toolbar">
-          <div className="search-box">
-            <span aria-hidden="true">/</span>
-            <input
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="작업 검색"
-              aria-label="작업 검색"
-            />
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="spinner" />
+            <p>로딩 중...</p>
           </div>
-
-          <div className="filter-group" aria-label="작업 필터">
-            {(Object.keys(filterLabels) as Filter[]).map((filterKey) => (
-              <button
-                className={filter === filterKey ? "filter-chip active" : "filter-chip"}
-                key={filterKey}
-                onClick={() => setFilter(filterKey)}
-                type="button"
-              >
-                {filterLabels[filterKey]}
+        ) : (
+          <>
+            <form onSubmit={addTodo} className="todo-form">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="할 일을 입력하세요"
+                className="todo-input"
+              />
+              <button type="submit" className="add-btn">
+                추가
               </button>
-            ))}
-          </div>
-        </div>
+            </form>
 
-        <div className="stat-grid">
-          <article>
-            <strong>{stats.total}</strong>
-            <span>전체</span>
-          </article>
-          <article>
-            <strong>{stats.active}</strong>
-            <span>진행 중</span>
-          </article>
-          <article>
-            <strong>{stats.completed}</strong>
-            <span>완료</span>
-          </article>
-        </div>
-
-        <div className="bulk-actions">
-          <button onClick={completeAll} type="button" disabled={todos.length === 0}>
-            모두 완료
-          </button>
-          <button onClick={clearCompleted} type="button" disabled={stats.completed === 0}>
-            완료 삭제
-          </button>
-        </div>
-
-        <ul className="task-list">
-          {visibleTodos.map((todo) => {
-            const isOverdue = Boolean(todo.dueDate) && todo.dueDate < today && !todo.completed;
-
-            return (
-              <li className={todo.completed ? "task-item completed" : "task-item"} key={todo.id}>
-                <label className="task-check">
-                  <input
-                    checked={todo.completed}
-                    onChange={() => toggleTodo(todo.id)}
-                    type="checkbox"
-                    aria-label={`${todo.title} 완료 상태 변경`}
-                  />
-                  <span />
-                </label>
-
-                <div className="task-content">
-                  <div className="task-title-row">
-                    <strong>{todo.title}</strong>
-                    <span className={`priority-badge ${todo.priority}`}>
-                      {priorityLabels[todo.priority]}
-                    </span>
-                  </div>
-                  <p>
-                    {todo.dueDate ? `마감 ${todo.dueDate}` : "마감일 없음"}
-                    {isOverdue ? " · 지연" : ""}
-                  </p>
+            {totalCount === 0 ? (
+              <div className="empty-state">
+                <p>할 일이 없습니다.</p>
+                <p className="empty-hint">위 입력창에 할 일을 추가하세요.</p>
+              </div>
+            ) : (
+              <>
+                <div className="filter-bar">
+                  {(["all", "active", "completed"] as Filter[]).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={`filter-btn ${filter === f ? "active" : ""}`}
+                    >
+                      {f}
+                    </button>
+                  ))}
                 </div>
 
-                <button className="delete-button" onClick={() => deleteTodo(todo.id)} type="button">
-                  삭제
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                <ul className="todo-list">
+                  {filteredTodos.map((todo) => (
+                    <TodoItem
+                      key={todo.id}
+                      todo={todo}
+                      onToggle={toggleTodo}
+                      onDelete={deleteTodo}
+                    />
+                  ))}
+                </ul>
 
-        {visibleTodos.length === 0 ? (
-          <div className="empty-state">
-            <strong>표시할 작업이 없습니다.</strong>
-            <p>새 작업을 추가하거나 검색/필터 조건을 바꿔보세요.</p>
-          </div>
-        ) : null}
-      </section>
-    </main>
+                <div className="stats-bar">
+                  <span>
+                    {completedCount}/{totalCount} 완료
+                  </span>
+                  {completedCount > 0 && (
+                    <button
+                      onClick={() => setTodos([])}
+                      className="clear-completed-btn"
+                    >
+                      완료된 항목 삭제
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </main>
+    </div>
   );
-}
+};
+
+const App: React.FC = () => (
+  <ThemeProvider>
+    <AppContent />
+  </ThemeProvider>
+);
 
 export default App;
